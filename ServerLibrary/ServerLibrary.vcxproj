@@ -153,6 +153,8 @@
   <ItemGroup>
     <ClInclude Include="CoreGlobal.h" />
     <ClInclude Include="CorePch.h" />
+    <ClInclude Include="DBConnection.h" />
+    <ClInclude Include="DBConnectionPool.h" />
     <ClInclude Include="GlobalQueue.h" />
     <ClInclude Include="Iocp.h" />
     <ClInclude Include="IocpEvent.h" />
@@ -177,6 +179,8 @@
   <ItemGroup>
     <ClCompile Include="CoreGlobal.cpp" />
     <ClCompile Include="CorePch.cpp" />
+    <ClCompile Include="DBConnection.cpp" />
+    <ClCompile Include="DBConnectionPool.cpp" />
     <ClCompile Include="GlobalQueue.cpp" />
     <ClCompile Include="Iocp.cpp" />
     <ClCompile Include="IocpEvent.cpp" />

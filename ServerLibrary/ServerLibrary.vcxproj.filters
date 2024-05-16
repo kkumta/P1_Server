@@ -16,7 +16,7 @@
     <Filter Include="Main">
       <UniqueIdentifier>{b98e1f2d-10c0-43da-8c27-d2b2e0026929}</UniqueIdentifier>
     </Filter>
-    <Filter Include="DB">
+    <Filter Include="Database">
       <UniqueIdentifier>{8a343213-1e6a-4bf5-bf90-315bd6c6cff2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -80,6 +80,12 @@
     </ClCompile>
     <ClCompile Include="GlobalQueue.cpp">
       <Filter>Job</Filter>
+    </ClCompile>
+    <ClCompile Include="DBConnectionPool.cpp">
+      <Filter>Database</Filter>
+    </ClCompile>
+    <ClCompile Include="DBConnection.cpp">
+      <Filter>Database</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -148,6 +154,12 @@
     </ClInclude>
     <ClInclude Include="GlobalQueue.h">
       <Filter>Job</Filter>
+    </ClInclude>
+    <ClInclude Include="DBConnectionPool.h">
+      <Filter>Database</Filter>
+    </ClInclude>
+    <ClInclude Include="DBConnection.h">
+      <Filter>Database</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

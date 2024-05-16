@@ -30,5 +30,3 @@ using namespace std;
 #include "Service.h"
 #include "Session.h"
 #include "JobQueue.h"
-
-void HelloWorld();
