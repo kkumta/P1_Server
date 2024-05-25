@@ -52,7 +52,7 @@ void ThreadManager::DestroyTLS()
 
 }
 
-void ThreadManager::DoGlobalQueueWork()
+void ThreadManager::DoGlobalQueueWork(THREAD_TYPE type)
 {
 	while (true)
 	{
@@ -60,11 +60,11 @@ void ThreadManager::DoGlobalQueueWork()
 		if (now > LEndTickCount)
 			break;
 
-		JobQueuePtr jobQueue = GGlobalQueue->Pop();
+		JobQueuePtr jobQueue = GGlobalQueue->Pop(type);
 		if (jobQueue == nullptr)
 			break;
 
-		jobQueue->Execute();
+		jobQueue->Execute(type);
 	}
 }
 

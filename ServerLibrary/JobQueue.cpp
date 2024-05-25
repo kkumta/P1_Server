@@ -6,7 +6,7 @@
 	JobQueue
 ---------------*/
 
-void JobQueue::Push(JobPtr job, bool pushOnly)
+void JobQueue::Push(JobPtr job, THREAD_TYPE type, bool pushOnly)
 {
 	const int32 prevCount = _jobCount.fetch_add(1);
 	_jobs.Push(job); // WRITE_LOCK
@@ -17,18 +17,18 @@ void JobQueue::Push(JobPtr job, bool pushOnly)
 		// 이미 실행중인 JobQueue가 없으면 실행
 		if (LCurrentJobQueue == nullptr && pushOnly == false)
 		{
-			Execute();
+			Execute(type);
 		}
 		else
 		{
 			// 여유 있는 다른 쓰레드가 실행하도록 GlobalQueue에 넘긴다
-			GGlobalQueue->Push(shared_from_this());
+			GGlobalQueue->Push(shared_from_this(), type);
 		}
 	}
 }
 
 // 1) 일감이 너~무 몰리면?
-void JobQueue::Execute()
+void JobQueue::Execute(THREAD_TYPE type)
 {
 	LCurrentJobQueue = this;
 
@@ -53,7 +53,7 @@ void JobQueue::Execute()
 		{
 			LCurrentJobQueue = nullptr;
 			// 여유 있는 다른 쓰레드가 실행하도록 GlobalQueue에 넘긴다
-			GGlobalQueue->Push(shared_from_this());
+			GGlobalQueue->Push(shared_from_this(), type);
 			break;
 		}
 	}

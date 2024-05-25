@@ -15,12 +15,18 @@ GlobalQueue::~GlobalQueue()
 
 }
 
-void GlobalQueue::Push(JobQueuePtr jobQueue)
+void GlobalQueue::Push(JobQueuePtr jobQueue, THREAD_TYPE type)
 {
-	_jobQueues.Push(jobQueue);
+	if (type == THREAD_TYPE::LOGIC)
+		_logicJobQueues.Push(jobQueue);
+	else if (type == THREAD_TYPE::DB)
+		_dbJobQueues.Push(jobQueue);
 }
 
-JobQueuePtr GlobalQueue::Pop()
+JobQueuePtr GlobalQueue::Pop(THREAD_TYPE type)
 {
-	return _jobQueues.Pop();
+	if (type == THREAD_TYPE::LOGIC)
+		return _logicJobQueues.Pop();
+	else if (type == THREAD_TYPE::DB)
+		return _dbJobQueues.Pop();
 }

@@ -3,7 +3,7 @@
 #include <mutex>
 #include <atomic>
 
-using uchar = unsigned char;
+using BYTE = unsigned char;
 using int8 = __int8;
 using int16 = __int16;
 using int32 = __int32;
@@ -25,3 +25,9 @@ USING_SHARED_PTR(ServerService);
 USING_SHARED_PTR(SendBuffer);
 USING_SHARED_PTR(Job);
 USING_SHARED_PTR(JobQueue);
+
+enum THREAD_TYPE
+{
+	LOGIC = 1,
+	DB = 2
+};

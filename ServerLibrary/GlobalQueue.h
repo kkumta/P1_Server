@@ -6,9 +6,10 @@ public:
 	GlobalQueue();
 	~GlobalQueue();
 
-	void					Push(JobQueuePtr jobQueue);
-	JobQueuePtr				Pop();
+	void Push(JobQueuePtr jobQueue, THREAD_TYPE type);
+	JobQueuePtr Pop(THREAD_TYPE type);
 
 private:
-	LockQueue<JobQueuePtr> _jobQueues;
+	LockQueue<JobQueuePtr> _logicJobQueues;
+	LockQueue<JobQueuePtr> _dbJobQueues;
 };

@@ -37,7 +37,7 @@ void JobTimer::Distribute(uint64 now)
 	for (TimerItem& item : items)
 	{
 		if (JobQueuePtr owner = item.jobData->owner.lock())
-			owner->Push(item.jobData->job);
+			owner->Push(item.jobData->job, THREAD_TYPE::LOGIC);
 
 		delete item.jobData;
 	}

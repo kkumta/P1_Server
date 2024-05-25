@@ -10,6 +10,12 @@
 class ThreadManager
 {
 public:
+	enum class Type
+	{
+		LOGIC,
+		DB
+	};
+
 	ThreadManager();
 	~ThreadManager();
 
@@ -19,7 +25,7 @@ public:
 	static void InitTLS();
 	static void DestroyTLS();
 
-	static void DoGlobalQueueWork();
+	static void DoGlobalQueueWork(THREAD_TYPE type);
 	static void DistributeReservedJobs();
 
 private:

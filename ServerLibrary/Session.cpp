@@ -240,6 +240,33 @@ void Session::RegisterRecv()
 
 void Session::ProcessRecv(int32 numOfBytes)
 {
+	_recvEvent.SetOwner(nullptr); // RELEASE_REF
+
+	if (numOfBytes == 0)
+	{
+		Disconnect(L"Recv 0");
+		return;
+	}
+
+	if (_recvBuffer.OnWrite(numOfBytes) == false)
+	{
+		Disconnect(L"OnWrite Overflow");
+		return;
+	}
+
+	int32 dataSize = _recvBuffer.DataSize();
+	int32 processLen = OnRecv(_recvBuffer.ReadPos(), dataSize); // 컨텐츠 코드에서 재정의
+	if (processLen < 0 || dataSize < processLen || _recvBuffer.OnRead(processLen) == false)
+	{
+		Disconnect(L"OnRead Overflow");
+		return;
+	}
+
+	// 커서 정리
+	_recvBuffer.Clean();
+
+	// 수신 등록
+	RegisterRecv();
 }
 
 void Session::HandleError(int32 errorCode)
@@ -265,7 +292,6 @@ PacketSession::~PacketSession()
 {
 }
 
-// [size(2)][id(2)][data....][size(2)][id(2)][data....]
 int32 PacketSession::OnRecv(BYTE* buffer, int32 len)
 {
 	int32 processLen = 0;

@@ -10,9 +10,9 @@
 class JobQueue : public enable_shared_from_this<JobQueue>
 {
 public:
-	void DoAsync(CallbackType&& callback)
+	void DoAsync(CallbackType&& callback, THREAD_TYPE type)
 	{
-		Push(make_shared<Job>(std::move(callback)));
+		Push(make_shared<Job>(std::move(callback)), type);
 	}
 
 	template<typename T, typename Ret, typename... Args>
@@ -39,8 +39,8 @@ public:
 	void ClearJobs() { _jobs.Clear(); }
 
 public:
-	void Push(JobPtr job, bool pushOnly = false);
-	void Execute();
+	void Push(JobPtr job, THREAD_TYPE type, bool pushOnly = false);
+	void Execute(THREAD_TYPE type);
 
 protected:
 	LockQueue<JobPtr> _jobs;

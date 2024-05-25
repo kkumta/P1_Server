@@ -1,0 +1,32 @@
+#include "pch.h"
+#include "ObjectUtils.h"
+#include "Player.h"
+#include "Monster.h"
+#include "GameSession.h"
+
+atomic<int64> ObjectUtils::s_idGenerator = 1;
+
+PlayerPtr ObjectUtils::CreatePlayer(GameSessionPtr session)
+{
+	const int64 newId = s_idGenerator.fetch_add(1);
+
+	PlayerPtr player = make_shared<Player>();
+	player->objectInfo->set_object_id(newId);
+	player->posInfo->set_object_id(newId);
+
+	player->session = session;
+	session->player.store(player);
+
+	return player;
+}
+
+MonsterPtr ObjectUtils::CreateMonster()
+{
+	const int64 newId = s_idGenerator.fetch_add(1);
+
+	MonsterPtr monster = make_shared<Monster>();
+	monster->objectInfo->set_object_id(newId);
+	monster->posInfo->set_object_id(newId);
+
+	return monster;
+}
