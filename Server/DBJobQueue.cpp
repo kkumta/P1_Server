@@ -14,7 +14,7 @@ DBJobQueue::~DBJobQueue()
 {
 }
 
-bool DBJobQueue::HandleJoin(PacketSessionPtr& session, Protocol::C_JOIN& pkt)
+bool DBJobQueue::HandleJoin(PacketSessionPtr session, Protocol::C_JOIN pkt)
 {
 	Protocol::S_JOIN joinPkt;
 
@@ -95,7 +95,7 @@ bool DBJobQueue::HandleJoin(PacketSessionPtr& session, Protocol::C_JOIN& pkt)
 	return true;
 }
 
-bool DBJobQueue::HandleLogin(PacketSessionPtr& session, Protocol::C_LOGIN& pkt)
+bool DBJobQueue::HandleLogin(PacketSessionPtr session, Protocol::C_LOGIN pkt)
 {
 	Protocol::S_LOGIN loginPkt;
 
@@ -126,9 +126,9 @@ bool DBJobQueue::HandleLogin(PacketSessionPtr& session, Protocol::C_LOGIN& pkt)
 		SQLLEN nicknameLen = nickname.length();
 		ASSERT_CRASH(dbConn->BindParam(1, SQL_C_CHAR, SQL_VARCHAR, nicknameLen, const_cast<char*>(nickname.c_str()), &nicknameLen));
 
-		string outPassword;
+		vector<char> outPasswordBuffer(256);
 		SQLLEN outPasswordLen = 0;
-		ASSERT_CRASH(dbConn->BindCol(1, SQL_C_CHAR, sizeof(outPassword), &outPassword, &outPasswordLen));
+		ASSERT_CRASH(dbConn->BindCol(1, SQL_C_CHAR, outPasswordBuffer.size(), outPasswordBuffer.data(), &outPasswordLen));
 
 		// SQL 실행
 		ASSERT_CRASH(dbConn->Execute(L"SELECT password FROM [dbo].[users] WHERE nickname = (?)"));
@@ -136,9 +136,11 @@ bool DBJobQueue::HandleLogin(PacketSessionPtr& session, Protocol::C_LOGIN& pkt)
 		// 결과 확인
 		dbConn->Fetch();
 
+		string outPassword(outPasswordBuffer.data(), outPasswordLen);
+
 		GDBConnectionPool->Push(dbConn);
 
-		if (!outPassword._Equal(password))
+		if (outPassword != password)
 		{
 			loginPkt.set_success(false);
 			SEND_PACKET(loginPkt);
@@ -148,6 +150,7 @@ bool DBJobQueue::HandleLogin(PacketSessionPtr& session, Protocol::C_LOGIN& pkt)
 
 	// 클라이언트에 패킷 보내기
 	loginPkt.set_success(true);
+	loginPkt.set_nickname(nickname);
 	SEND_PACKET(loginPkt);
 
 	return true;

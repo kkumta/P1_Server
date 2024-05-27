@@ -7,6 +7,8 @@
 	JobQueue
 ---------------*/
 
+class DBJobQueue;
+
 class JobQueue : public enable_shared_from_this<JobQueue>
 {
 public:
@@ -19,7 +21,13 @@ public:
 	void DoAsync(Ret(T::* memFunc)(Args...), Args... args)
 	{
 		shared_ptr<T> owner = static_pointer_cast<T>(shared_from_this());
-		Push(make_shared<Job>(owner, memFunc, std::forward<Args>(args)...));
+
+		// owner가 DBJobQueue 클래스 타입이면 실행
+		if (dynamic_cast<DBJobQueue*>(owner.get()) != nullptr)
+			Push(make_shared<Job>(owner, memFunc, std::forward<Args>(args)...), THREAD_TYPE::DB);
+		// owner가 그 외 클래스 타입이면 실행
+		else 
+			Push(make_shared<Job>(owner, memFunc, std::forward<Args>(args)...), THREAD_TYPE::LOGIC);
 	}
 
 	void DoTimer(uint64 tickAfter, CallbackType&& callback)

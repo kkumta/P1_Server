@@ -28,22 +28,6 @@ void DoWorkerJob(ServerServicePtr& service)
 
 void DoDBJob()
 {
-	ASSERT_CRASH(GDBConnectionPool->Connect(1, L"Driver={SQL Server Native Client 11.0};Server=(localdb)\\MSSQLLocalDB;Database=Phoenix;Trusted_Connection=Yes;"));
-	{
-		auto query = L"									\
-			DROP TABLE IF EXISTS [dbo].[users];				\
-			CREATE TABLE [dbo].[users]						\
-			(												\
-				[id] INT NOT NULL PRIMARY KEY IDENTITY,		\
-				[nickname] VARCHAR(32) NOT NULL,			\
-				[password] VARCHAR(32) NOT NULL				\
-			);";
-
-		DBConnection* dbConn = GDBConnectionPool->Pop();
-		ASSERT_CRASH(dbConn->Execute(query));
-		GDBConnectionPool->Push(dbConn);
-	}
-
 	while (true)
 	{
 		ThreadManager::DoGlobalQueueWork(THREAD_TYPE::DB);
@@ -72,6 +56,21 @@ int main()
 	}
 
 	// DB 스레드
+	ASSERT_CRASH(GDBConnectionPool->Connect(1, L"Driver={SQL Server Native Client 11.0};Server=(localdb)\\MSSQLLocalDB;Database=Phoenix;Trusted_Connection=Yes;"));
+	{
+		auto query = L"									\
+			DROP TABLE IF EXISTS [dbo].[users];				\
+			CREATE TABLE [dbo].[users]						\
+			(												\
+				[id] INT NOT NULL PRIMARY KEY IDENTITY,		\
+				[nickname] VARCHAR(32) NOT NULL,			\
+				[password] VARCHAR(32) NOT NULL				\
+			);";
+
+		DBConnection* dbConn = GDBConnectionPool->Pop();
+		ASSERT_CRASH(dbConn->Execute(query));
+		GDBConnectionPool->Push(dbConn);
+	}
 	for (int32 i = 0; i < 2; i++)
 	{
 		GThreadManager->Launch([=]()

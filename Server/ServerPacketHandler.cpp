@@ -3,6 +3,8 @@
 #include "DBJobQueue.h"
 #include "Room.h"
 #include "GameSession.h"
+#include "Player.h"
+#include "ObjectUtils.h"
 
 PacketHandlerFunc GPacketHandler[UINT16_MAX];
 
@@ -13,20 +15,26 @@ bool Handle_INVALID(PacketSessionPtr& session, BYTE* buffer, int32 len)
 
 bool Handle_C_JOIN(PacketSessionPtr& session, Protocol::C_JOIN& pkt)
 {
-	GDBJobQueue->HandleJoin(session, pkt);
+	GDBJobQueue->DoAsync(&DBJobQueue::HandleJoin, session, pkt);
 
 	return true;
 }
 
 bool Handle_C_LOGIN(PacketSessionPtr& session, Protocol::C_LOGIN& pkt)
 {
-	GDBJobQueue->HandleLogin(session, pkt);
+	GDBJobQueue->DoAsync(&DBJobQueue::HandleLogin, session, pkt);
 
-	return false;
+	return true;
 }
 
 bool Handle_C_ENTER_GAME(PacketSessionPtr& session, Protocol::C_ENTER_GAME& pkt)
 {
+	// TODO: player 정보에 nickname 추가
+	PlayerPtr player = ObjectUtils::CreatePlayer(static_pointer_cast<GameSession>(session));
+
+	// 플레이어를 방에 입장시킨다.
+	GRoom->DoAsync(&Room::HandleEnterPlayer, player);
+
 	return false;
 }
 
