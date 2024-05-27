@@ -3,7 +3,7 @@
 class ObjectUtils
 {
 public:
-	static PlayerPtr CreatePlayer(GameSessionPtr session);
+	static PlayerPtr CreatePlayer(GameSessionPtr session, string nickname);
 	static MonsterPtr CreateMonster();
 
 private:

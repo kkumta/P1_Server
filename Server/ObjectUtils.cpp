@@ -6,12 +6,13 @@
 
 atomic<int64> ObjectUtils::s_idGenerator = 1;
 
-PlayerPtr ObjectUtils::CreatePlayer(GameSessionPtr session)
+PlayerPtr ObjectUtils::CreatePlayer(GameSessionPtr session, string nickname)
 {
 	const int64 newId = s_idGenerator.fetch_add(1);
 
 	PlayerPtr player = make_shared<Player>();
 	player->objectInfo->set_object_id(newId);
+	player->objectInfo->set_nickname(nickname);
 	player->posInfo->set_object_id(newId);
 
 	player->session = session;

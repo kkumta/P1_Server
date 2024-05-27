@@ -17,18 +17,15 @@ Room::~Room()
 
 }
 
-bool Room::EnterRoom(ObjectPtr object, bool randPos /*= true*/)
+bool Room::EnterRoom(ObjectPtr object)
 {
 	bool success = AddObject(object);
 
-	// 랜덤 위치
-	if (randPos)
-	{
-		object->posInfo->set_x(100.f);
-		object->posInfo->set_y(100.f);
-		object->posInfo->set_z(100.f);
-		object->posInfo->set_yaw(50.f);
-	}
+	// 기본 위치 설정
+	object->posInfo->set_x(100.f);
+	object->posInfo->set_y(100.f);
+	object->posInfo->set_z(100.f);
+	object->posInfo->set_yaw(50.f);
 
 	// 입장 사실을 신입 플레이어에게 알린다
 	if (auto player = dynamic_pointer_cast<Player>(object))
@@ -114,7 +111,7 @@ bool Room::LeaveRoom(ObjectPtr object)
 
 bool Room::HandleEnterPlayer(PlayerPtr player)
 {
-	return EnterRoom(player, true);
+	return EnterRoom(player);
 }
 
 bool Room::HandleLeavePlayer(PlayerPtr player)

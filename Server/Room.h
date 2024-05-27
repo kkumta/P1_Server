@@ -11,7 +11,7 @@ public:
 	bool HandleLeavePlayer(PlayerPtr player);
 
 	// Obejct가 Room에서 하는 행위 관련
-	bool EnterRoom(ObjectPtr object, bool randPos = false);
+	bool EnterRoom(ObjectPtr object);
 	bool LeaveRoom(ObjectPtr object);
 	void HandleMove(Protocol::C_MOVE pkt);
 

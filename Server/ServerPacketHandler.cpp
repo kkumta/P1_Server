@@ -30,7 +30,7 @@ bool Handle_C_LOGIN(PacketSessionPtr& session, Protocol::C_LOGIN& pkt)
 bool Handle_C_ENTER_GAME(PacketSessionPtr& session, Protocol::C_ENTER_GAME& pkt)
 {
 	// TODO: player 정보에 nickname 추가
-	PlayerPtr player = ObjectUtils::CreatePlayer(static_pointer_cast<GameSession>(session));
+	PlayerPtr player = ObjectUtils::CreatePlayer(static_pointer_cast<GameSession>(session), pkt.nickname());
 
 	// 플레이어를 방에 입장시킨다.
 	GRoom->DoAsync(&Room::HandleEnterPlayer, player);
