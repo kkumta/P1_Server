@@ -40,7 +40,19 @@ bool Handle_C_ENTER_GAME(PacketSessionPtr& session, Protocol::C_ENTER_GAME& pkt)
 
 bool Handle_C_LEAVE_GAME(PacketSessionPtr& session, Protocol::C_LEAVE_GAME& pkt)
 {
-	return false;
+	auto gameSession = static_pointer_cast<GameSession>(session);
+
+	PlayerPtr player = gameSession->player.load();
+	if (player == nullptr)
+		return false;
+
+	RoomPtr room = player->room.load().lock();
+	if (room == nullptr)
+		return false;
+
+	room->HandleLeavePlayer(player);
+
+	return true;
 }
 
 bool Handle_C_MOVE(PacketSessionPtr& session, Protocol::C_MOVE& pkt)
