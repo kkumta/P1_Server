@@ -50,14 +50,30 @@ bool Handle_C_LEAVE_GAME(PacketSessionPtr& session, Protocol::C_LEAVE_GAME& pkt)
 	if (room == nullptr)
 		return false;
 
-	room->HandleLeavePlayer(player);
+	GRoom->DoAsync(&Room::HandleLeavePlayer, player);
 
 	return true;
 }
 
 bool Handle_C_MOVE(PacketSessionPtr& session, Protocol::C_MOVE& pkt)
 {
-	return false;
+		auto gameSession = static_pointer_cast<GameSession>(session);
+
+		PlayerPtr player = gameSession->player.load();
+		if (player == nullptr)
+			return false;
+
+		// gameSession의 Player가 pkt의 info의 object_id에 해당되는 Player인지 확인
+		if (player->posInfo->object_id() != pkt.info().object_id())
+			return false;
+
+		RoomPtr room = player->room.load().lock();
+		if (room == nullptr)
+			return false;
+
+		GRoom->DoAsync(&Room::HandleMove, pkt);
+
+		return true;
 }
 
 bool Handle_C_CHAT(PacketSessionPtr& session, Protocol::C_CHAT& pkt)

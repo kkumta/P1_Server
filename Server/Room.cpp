@@ -129,7 +129,7 @@ void Room::HandleMove(Protocol::C_MOVE pkt)
 	PlayerPtr player = dynamic_pointer_cast<Player>(_objects[objectId]);
 	player->posInfo->CopyFrom(pkt.info());
 
-	// 이동 사실을 알린다 (본인 포함? 빼고?)
+	// 모든 클라이언트에게 이동 사실을 알린다
 	{
 		Protocol::S_MOVE movePkt;
 		{
