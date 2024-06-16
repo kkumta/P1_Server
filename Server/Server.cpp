@@ -3,6 +3,7 @@
 #include "ThreadManager.h"
 #include "DBConnectionPool.h"
 #include "DBJobQueue.h"
+#include "Room.h"
 
 enum
 {
@@ -78,8 +79,6 @@ int main()
 			DoDBJob();
 		});
 	}
-
-	//GRoom->DoAsync(&Room::UpdateTick); // 매 틱마다 몬스터 관련 행위?
 
 	GThreadManager->Join();
 }

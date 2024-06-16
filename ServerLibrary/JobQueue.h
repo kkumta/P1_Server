@@ -30,6 +30,7 @@ public:
 			Push(make_shared<Job>(owner, memFunc, std::forward<Args>(args)...), THREAD_TYPE::LOGIC);
 	}
 
+	// DoTimer의 스레드 타입은 무조건 LOGIC이다
 	void DoTimer(uint64 tickAfter, CallbackType&& callback)
 	{
 		JobPtr job = make_shared<Job>(std::move(callback));

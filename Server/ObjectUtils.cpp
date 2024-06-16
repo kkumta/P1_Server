@@ -21,13 +21,19 @@ PlayerPtr ObjectUtils::CreatePlayer(GameSessionPtr session, string nickname)
 	return player;
 }
 
-MonsterPtr ObjectUtils::CreateMonster()
+MonsterPtr ObjectUtils::CreateMonster(MonsterPtr monster)
 {
-	const int64 newId = s_idGenerator.fetch_add(1);
+    const int64_t newId = s_idGenerator.fetch_add(1);
 
-	MonsterPtr monster = make_shared<Monster>();
-	monster->objectInfo->set_object_id(newId);
-	monster->posInfo->set_object_id(newId);
+    MonsterPtr newMonster = make_shared<Monster>();
 
-	return monster;
+    // monster의 objectInfo와 posInfo를 newMonster로 복사
+    if (monster->objectInfo && newMonster->objectInfo)
+    {
+        newMonster->objectInfo->CopyFrom(*monster->objectInfo);
+    }
+    newMonster->objectInfo->set_object_id(newId);
+    newMonster->posInfo->set_object_id(newId);
+
+    return newMonster;
 }

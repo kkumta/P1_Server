@@ -29,4 +29,6 @@ JobQueuePtr GlobalQueue::Pop(THREAD_TYPE type)
 		return _logicJobQueues.Pop();
 	else if (type == THREAD_TYPE::DB)
 		return _dbJobQueues.Pop();
+
+	return nullptr;
 }

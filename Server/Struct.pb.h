@@ -732,9 +732,10 @@ class ObjectInfo final :
 
   enum : int {
     kNicknameFieldNumber = 2,
-    kPosInfoFieldNumber = 4,
+    kPosInfoFieldNumber = 5,
     kObjectIdFieldNumber = 1,
     kObjectTypeFieldNumber = 3,
+    kCreatureTypeFieldNumber = 4,
   };
   // string nickname = 2;
   void clear_nickname();
@@ -750,7 +751,7 @@ class ObjectInfo final :
   std::string* _internal_mutable_nickname();
   public:
 
-  // .Protocol.PosInfo pos_info = 4;
+  // .Protocol.PosInfo pos_info = 5;
   bool has_pos_info() const;
   private:
   bool _internal_has_pos_info() const;
@@ -786,6 +787,15 @@ class ObjectInfo final :
   void _internal_set_object_type(::Protocol::ObjectType value);
   public:
 
+  // .Protocol.CreatureType creature_type = 4;
+  void clear_creature_type();
+  ::Protocol::CreatureType creature_type() const;
+  void set_creature_type(::Protocol::CreatureType value);
+  private:
+  ::Protocol::CreatureType _internal_creature_type() const;
+  void _internal_set_creature_type(::Protocol::CreatureType value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Protocol.ObjectInfo)
  private:
   class _Internal;
@@ -798,6 +808,7 @@ class ObjectInfo final :
     ::Protocol::PosInfo* pos_info_;
     uint64_t object_id_;
     int object_type_;
+    int creature_type_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1236,7 +1247,27 @@ inline void ObjectInfo::set_object_type(::Protocol::ObjectType value) {
   // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.object_type)
 }
 
-// .Protocol.PosInfo pos_info = 4;
+// .Protocol.CreatureType creature_type = 4;
+inline void ObjectInfo::clear_creature_type() {
+  _impl_.creature_type_ = 0;
+}
+inline ::Protocol::CreatureType ObjectInfo::_internal_creature_type() const {
+  return static_cast< ::Protocol::CreatureType >(_impl_.creature_type_);
+}
+inline ::Protocol::CreatureType ObjectInfo::creature_type() const {
+  // @@protoc_insertion_point(field_get:Protocol.ObjectInfo.creature_type)
+  return _internal_creature_type();
+}
+inline void ObjectInfo::_internal_set_creature_type(::Protocol::CreatureType value) {
+  
+  _impl_.creature_type_ = value;
+}
+inline void ObjectInfo::set_creature_type(::Protocol::CreatureType value) {
+  _internal_set_creature_type(value);
+  // @@protoc_insertion_point(field_set:Protocol.ObjectInfo.creature_type)
+}
+
+// .Protocol.PosInfo pos_info = 5;
 inline bool ObjectInfo::_internal_has_pos_info() const {
   return this != internal_default_instance() && _impl_.pos_info_ != nullptr;
 }

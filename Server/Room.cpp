@@ -9,7 +9,16 @@ RoomPtr GRoom = make_shared<Room>();
 
 Room::Room()
 {
-
+	for (int i = 0; i < TOTAL_MONSTER_COUNT; i++)
+	{
+		MonsterPtr monster = make_shared<Monster>();
+		monster->posInfo->set_x((float)i * 1000);
+		monster->posInfo->set_y((float)i * 500);
+		monster->posInfo->set_z(88.f);
+		monster->posInfo->set_yaw(20.f);
+		monster->objectInfo->set_nickname("monster");
+		_monsters.push_back(make_pair(false, monster));
+	}
 }
 
 Room::~Room()
@@ -20,14 +29,19 @@ Room::~Room()
 bool Room::EnterRoom(ObjectPtr object)
 {
 	bool success = AddObject(object);
+	if (!success)
+		return false;
 
-	// 기본 위치 설정
-	object->posInfo->set_x(100.f);
-	object->posInfo->set_y(100.f);
-	object->posInfo->set_z(100.f);
-	object->posInfo->set_yaw(50.f);
+	// 플레이어일 경우 기본 위치 설정
+	if (dynamic_pointer_cast<Player>(object))
+	{
+		object->posInfo->set_x(100.f);
+		object->posInfo->set_y(100.f);
+		object->posInfo->set_z(100.f);
+		object->posInfo->set_yaw(50.f);
+	}
 
-	// 입장 사실을 신입 플레이어에게 알린다
+	// 새로운 플레이어 입장
 	if (auto player = dynamic_pointer_cast<Player>(object))
 	{
 		Protocol::S_ENTER_GAME enterGamePkt;
@@ -42,7 +56,7 @@ bool Room::EnterRoom(ObjectPtr object)
 			session->Send(sendBuffer);
 	}
 
-	// 입장 사실을 다른 플레이어에게 알린다
+	// 새로운 객체가 입장했다는 사실을 다른 플레이어에게 알린다
 	{
 		Protocol::S_SPAWN spawnPkt;
 
@@ -53,18 +67,15 @@ bool Room::EnterRoom(ObjectPtr object)
 		Broadcast(sendBuffer, object->objectInfo->object_id());
 	}
 
-	// 기존 입장한 플레이어 목록을 신입 플레이어한테 전송해준다
+	// 기존에 존재하는 객체 목록을 새로운 플레이어한테 전송한다
 	if (auto player = dynamic_pointer_cast<Player>(object))
 	{
 		Protocol::S_SPAWN spawnPkt;
 
 		for (auto& item : _objects)
 		{
-			if (item.second->IsPlayer() == false)
-				continue;
-
-			Protocol::ObjectInfo* playerInfo = spawnPkt.add_objects();
-			playerInfo->CopyFrom(*item.second->objectInfo);
+			Protocol::ObjectInfo* objectInfo = spawnPkt.add_objects();
+			objectInfo->CopyFrom(*item.second->objectInfo);
 		}
 
 		SendBufferPtr sendBuffer = ServerPacketHandler::MakeSendBuffer(spawnPkt);
@@ -111,12 +122,21 @@ bool Room::LeaveRoom(ObjectPtr object)
 
 bool Room::HandleEnterPlayer(PlayerPtr player)
 {
-	return EnterRoom(player);
+	bool success = EnterRoom(player);
+	if (success) // 플레이어가 성공적으로 입장했을 경우 몬스터 생성
+		UpdateTickMonster();
+
+	return success;
 }
 
 bool Room::HandleLeavePlayer(PlayerPtr player)
 {
 	return LeaveRoom(player);
+}
+
+bool Room::HandleEnterMonster(MonsterPtr monster)
+{
+	return EnterRoom(monster);
 }
 
 void Room::HandleMove(Protocol::C_MOVE pkt)
@@ -143,14 +163,33 @@ void Room::HandleMove(Protocol::C_MOVE pkt)
 
 void Room::UpdateTickMonster()
 {
+	uint64 createCount = 0;
+	for (int i = 0; i < _monsters.size(); i++)
+	{
+		if (_monsters[i].second == nullptr)
+			continue;
+
+		// 몬스터가 없으면 createCount * 0.1초 후 생성
+		if (_monsters[i].first == false)
+		{
+			createCount++;
+			_monsters[i].first = true;
+			MonsterPtr monster = ObjectUtils::CreateMonster(_monsters[i].second);
+			DoTimer(createCount * 100, &Room::HandleEnterMonster, monster);
+		}
+	}
 }
 
-void Room::UpdateTick()
-{
-	cout << "Update Room" << endl;
+// TODO
+// 플레이어가 공격하는 함수
+// 몬스터 체력이 0이 되어 사망하고 리스폰되는 함수->UpdateTickMonster 호출
 
-	DoTimer(100, &Room::UpdateTick);
-}
+//void Room::UpdateTick()
+//{
+//	cout << "Update Room" << endl;
+//
+//	DoTimer(100, &Room::UpdateTick);
+//}
 
 RoomPtr Room::GetRoomPtr()
 {
