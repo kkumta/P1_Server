@@ -16,10 +16,10 @@ public:
 	bool EnterRoom(ObjectPtr object);
 	bool LeaveRoom(ObjectPtr object);
 	void HandleMove(Protocol::C_MOVE pkt);
+	void HandleAttack(Protocol::C_ATTACK pkt);
 
 	// 서버가 일정 주기마다 몬스터 스폰 관리
-	void UpdateTickMonster();
-	//void UpdateTick();
+	void UpdateMonster();
 
 	RoomPtr GetRoomPtr();
 

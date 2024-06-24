@@ -22,8 +22,10 @@ enum : uint16
 	PKT_S_DESPAWN = 1009,
 	PKT_C_MOVE = 1010,
 	PKT_S_MOVE = 1011,
-	PKT_C_CHAT = 1012,
-	PKT_S_CHAT = 1013,
+	PKT_C_ATTACK = 1012,
+	PKT_S_ATTACK = 1013,
+	PKT_C_CHAT = 1014,
+	PKT_S_CHAT = 1015,
 };
 
 // Custom Handlers
@@ -33,6 +35,7 @@ bool Handle_C_LOGIN(PacketSessionPtr& session, Protocol::C_LOGIN& pkt);
 bool Handle_C_ENTER_GAME(PacketSessionPtr& session, Protocol::C_ENTER_GAME& pkt);
 bool Handle_C_LEAVE_GAME(PacketSessionPtr& session, Protocol::C_LEAVE_GAME& pkt);
 bool Handle_C_MOVE(PacketSessionPtr& session, Protocol::C_MOVE& pkt);
+bool Handle_C_ATTACK(PacketSessionPtr& session, Protocol::C_ATTACK& pkt);
 bool Handle_C_CHAT(PacketSessionPtr& session, Protocol::C_CHAT& pkt);
 
 class ServerPacketHandler
@@ -47,6 +50,7 @@ public:
 		GPacketHandler[PKT_C_ENTER_GAME] = [](PacketSessionPtr& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::C_ENTER_GAME>(Handle_C_ENTER_GAME, session, buffer, len); };
 		GPacketHandler[PKT_C_LEAVE_GAME] = [](PacketSessionPtr& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::C_LEAVE_GAME>(Handle_C_LEAVE_GAME, session, buffer, len); };
 		GPacketHandler[PKT_C_MOVE] = [](PacketSessionPtr& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::C_MOVE>(Handle_C_MOVE, session, buffer, len); };
+		GPacketHandler[PKT_C_ATTACK] = [](PacketSessionPtr& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::C_ATTACK>(Handle_C_ATTACK, session, buffer, len); };
 		GPacketHandler[PKT_C_CHAT] = [](PacketSessionPtr& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::C_CHAT>(Handle_C_CHAT, session, buffer, len); };
 	}
 
@@ -62,6 +66,7 @@ public:
 	static SendBufferPtr MakeSendBuffer(Protocol::S_SPAWN& pkt) { return MakeSendBuffer(pkt, PKT_S_SPAWN); }
 	static SendBufferPtr MakeSendBuffer(Protocol::S_DESPAWN& pkt) { return MakeSendBuffer(pkt, PKT_S_DESPAWN); }
 	static SendBufferPtr MakeSendBuffer(Protocol::S_MOVE& pkt) { return MakeSendBuffer(pkt, PKT_S_MOVE); }
+	static SendBufferPtr MakeSendBuffer(Protocol::S_ATTACK& pkt) { return MakeSendBuffer(pkt, PKT_S_ATTACK); }
 	static SendBufferPtr MakeSendBuffer(Protocol::S_CHAT& pkt) { return MakeSendBuffer(pkt, PKT_S_CHAT); }
 
 private:

@@ -8,4 +8,7 @@ class Monster : public Creature
 public:
 	Monster();
 	virtual ~Monster();
+
+public:
+	Protocol::MonsterInfo* monsterInfo;
 };

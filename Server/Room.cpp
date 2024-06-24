@@ -1,15 +1,15 @@
 #include "pch.h"
 #include "Room.h"
 #include "Player.h"
-#include "GameSession.h"
 #include "Monster.h"
+#include "GameSession.h"
 #include "ObjectUtils.h"
 
 RoomPtr GRoom = make_shared<Room>();
 
 Room::Room()
 {
-	for (int i = 0; i < TOTAL_MONSTER_COUNT; i++)
+	for (uint64 i = 0; i < TOTAL_MONSTER_COUNT; i++)
 	{
 		MonsterPtr monster = make_shared<Monster>();
 		monster->posInfo->set_x((float)i * 1000);
@@ -17,6 +17,7 @@ Room::Room()
 		monster->posInfo->set_z(88.f);
 		monster->posInfo->set_yaw(20.f);
 		monster->objectInfo->set_nickname("monster");
+		monster->monsterInfo->set_monster_number(i);
 		_monsters.push_back(make_pair(false, monster));
 	}
 }
@@ -117,6 +118,13 @@ bool Room::LeaveRoom(ObjectPtr object)
 				session->Send(sendBuffer);
 	}
 
+	// 몬스터가 죽었을 경우 리스폰한다
+	if (auto monster = dynamic_pointer_cast<Monster>(object))
+	{
+		_monsters[monster->monsterInfo->monster_number()].first = false;
+		DoTimer(10000, &Room::UpdateMonster);
+	}
+
 	return success;
 }
 
@@ -124,7 +132,7 @@ bool Room::HandleEnterPlayer(PlayerPtr player)
 {
 	bool success = EnterRoom(player);
 	if (success) // 플레이어가 성공적으로 입장했을 경우 몬스터 생성
-		UpdateTickMonster();
+		UpdateMonster();
 
 	return success;
 }
@@ -161,7 +169,42 @@ void Room::HandleMove(Protocol::C_MOVE pkt)
 	}
 }
 
-void Room::UpdateTickMonster()
+void Room::HandleAttack(Protocol::C_ATTACK pkt)
+{
+	const uint64 attackingId = pkt.attacking_object_id();
+	const uint64 attackedId = pkt.attacked_object_id();
+	if (_objects.find(attackingId) == _objects.end() || _objects.find(attackedId) == _objects.end())
+		return;
+
+	// 공격 및 피격
+	CreaturePtr attackingCreature = dynamic_pointer_cast<Creature>(_objects[attackingId]);
+	CreaturePtr attackedCreature = dynamic_pointer_cast<Creature>(_objects[attackedId]);
+
+	// 피격당한 Creature의 HP가 0 이하가 되어 소멸하는 경우
+	if (attackedCreature->creatureInfo->cur_hp() <= attackingCreature->creatureInfo->damage())
+	{
+		// TODO: 소멸 및 디스폰 패킷 전송
+		LeaveRoom(attackedCreature);
+	}
+	else
+	{
+		uint64 newHp = attackedCreature->creatureInfo->cur_hp() - attackingCreature->creatureInfo->damage();
+		attackedCreature->creatureInfo->set_cur_hp(newHp);
+
+		// 모든 클라이언트에게 공격 및 피격 사실을 알린다
+		{
+			Protocol::S_ATTACK attackPkt;
+			{
+				Protocol::CreatureInfo* info = attackPkt.mutable_info();
+				info->CopyFrom(*(attackedCreature->creatureInfo));
+			}
+			SendBufferPtr sendBuffer = ServerPacketHandler::MakeSendBuffer(attackPkt);
+			Broadcast(sendBuffer);
+		}
+	}
+}
+
+void Room::UpdateMonster()
 {
 	uint64 createCount = 0;
 	for (int i = 0; i < _monsters.size(); i++)
