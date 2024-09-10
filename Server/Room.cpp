@@ -38,7 +38,7 @@ bool Room::EnterRoom(ObjectPtr object)
 	{
 		object->posInfo->set_x(100.f);
 		object->posInfo->set_y(100.f);
-		object->posInfo->set_z(100.f);
+		object->posInfo->set_z(500.f);
 		object->posInfo->set_yaw(50.f);
 	}
 
