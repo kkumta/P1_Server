@@ -7,7 +7,7 @@
 
 RoomPtr GRoom = make_shared<Room>();
 
-Room::Room()
+Room::Room() : JobQueue(THREAD_TYPE::LOGIC)
 {
 	for (uint64 i = 0; i < TOTAL_MONSTER_COUNT; i++)
 	{
@@ -24,7 +24,6 @@ Room::Room()
 
 Room::~Room()
 {
-
 }
 
 bool Room::EnterRoom(ObjectPtr object)

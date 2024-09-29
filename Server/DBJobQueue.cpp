@@ -6,7 +6,7 @@
 
 DBJobQueuePtr GDBJobQueue = make_shared<DBJobQueue>();
 
-DBJobQueue::DBJobQueue()
+DBJobQueue::DBJobQueue() : JobQueue(THREAD_TYPE::DB)
 {
 }
 

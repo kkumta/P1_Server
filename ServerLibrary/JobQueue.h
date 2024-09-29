@@ -7,11 +7,11 @@
 	JobQueue
 ---------------*/
 
-class DBJobQueue;
-
 class JobQueue : public enable_shared_from_this<JobQueue>
 {
 public:
+	explicit JobQueue(THREAD_TYPE threadType) : _threadType(threadType) {}
+
 	void DoAsync(CallbackType&& callback, THREAD_TYPE type)
 	{
 		Push(make_shared<Job>(std::move(callback)), type);
@@ -23,10 +23,10 @@ public:
 		shared_ptr<T> owner = static_pointer_cast<T>(shared_from_this());
 
 		// owner가 DBJobQueue 클래스 타입이면 실행
-		if (dynamic_cast<DBJobQueue*>(owner.get()) != nullptr)
+		if (owner.get()->_threadType == THREAD_TYPE::DB)
 			Push(make_shared<Job>(owner, memFunc, std::forward<Args>(args)...), THREAD_TYPE::DB);
 		// owner가 그 외 클래스 타입이면 실행
-		else 
+		else
 			Push(make_shared<Job>(owner, memFunc, std::forward<Args>(args)...), THREAD_TYPE::LOGIC);
 	}
 
@@ -54,4 +54,5 @@ public:
 protected:
 	LockQueue<JobPtr> _jobs;
 	atomic<int32> _jobCount = 0;
+	THREAD_TYPE _threadType;
 };
