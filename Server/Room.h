@@ -38,7 +38,7 @@ private:
 	};
 
 	unordered_map<uint64, ObjectPtr> _objects;
-	vector<pair<bool, MonsterPtr>> _monsters;
+	vector<pair<bool, uint64>> _monsters;
 };
 
 extern RoomPtr GRoom;

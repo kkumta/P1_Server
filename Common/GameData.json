@@ -1,0 +1,52 @@
+{
+  "monsters": [
+    {
+      "monsterNumber": 0,
+      "nickname": "StrongMonster",
+      "hp": 40,
+	  "damage": 20,
+	  "x": 0,
+	  "y": 0,
+	  "z": 88,
+	  "yaw": 20
+    },
+    {
+      "monsterNumber": 1,
+      "nickname": "EliteMonster",
+      "hp": 100,
+	  "damage": 40,
+	  "x": 1000,
+	  "y": 500,
+	  "z": 88,
+	  "yaw": 40
+    },
+	{
+      "monsterNumber": 2,
+      "nickname": "WeakMonster",
+      "hp": 10,
+	  "damage": 1,
+	  "x": 2000,
+	  "y": 1000,
+	  "z": 88,
+	  "yaw": 60
+    },
+	{
+      "monsterNumber": 3,
+      "nickname": "NormalMonster",
+      "hp": 20,
+	  "damage": 10,
+	  "x": 3000,
+	  "y": 1500,
+	  "z": 88,
+	  "yaw": 80
+    }
+  ],
+  "player": {
+    "hp": 200,
+	"damage": 20,
+	"x": 100,
+	"y": 100,
+	"z": 500,
+	"yaw": 50		
+  }
+}

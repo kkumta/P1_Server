@@ -10,16 +10,7 @@ RoomPtr GRoom = make_shared<Room>();
 Room::Room() : JobQueue(THREAD_TYPE::LOGIC)
 {
 	for (uint64 i = 0; i < TOTAL_MONSTER_COUNT; i++)
-	{
-		MonsterPtr monster = make_shared<Monster>();
-		monster->posInfo->set_x((float)i * 1000);
-		monster->posInfo->set_y((float)i * 500);
-		monster->posInfo->set_z(88.f);
-		monster->posInfo->set_yaw(20.f);
-		monster->objectInfo->set_nickname("monster");
-		monster->monsterInfo->set_monster_number(i);
-		_monsters.push_back(make_pair(false, monster));
-	}
+		_monsters.push_back(make_pair(false, i));
 }
 
 Room::~Room()
@@ -31,15 +22,6 @@ bool Room::EnterRoom(ObjectPtr object)
 	bool success = AddObject(object);
 	if (!success)
 		return false;
-
-	// 플레이어일 경우 기본 위치 설정
-	if (dynamic_pointer_cast<Player>(object))
-	{
-		object->posInfo->set_x(100.f);
-		object->posInfo->set_y(100.f);
-		object->posInfo->set_z(500.f);
-		object->posInfo->set_yaw(50.f);
-	}
 
 	// 새로운 플레이어 입장
 	if (auto player = dynamic_pointer_cast<Player>(object))
@@ -181,10 +163,7 @@ void Room::HandleAttack(Protocol::C_ATTACK pkt)
 
 	// 피격당한 Creature의 HP가 0 이하가 되어 소멸하는 경우
 	if (attackedCreature->creatureInfo->cur_hp() <= attackingCreature->creatureInfo->damage())
-	{
-		// TODO: 소멸 및 디스폰 패킷 전송
 		LeaveRoom(attackedCreature);
-	}
 	else
 	{
 		uint64 newHp = attackedCreature->creatureInfo->cur_hp() - attackingCreature->creatureInfo->damage();
@@ -208,9 +187,6 @@ void Room::UpdateMonster()
 	uint64 createCount = 0;
 	for (int i = 0; i < _monsters.size(); i++)
 	{
-		if (_monsters[i].second == nullptr)
-			continue;
-
 		// 몬스터가 없으면 createCount * 0.1초 후 생성
 		if (_monsters[i].first == false)
 		{
@@ -221,17 +197,6 @@ void Room::UpdateMonster()
 		}
 	}
 }
-
-// TODO
-// 플레이어가 공격하는 함수
-// 몬스터 체력이 0이 되어 사망하고 리스폰되는 함수->UpdateTickMonster 호출
-
-//void Room::UpdateTick()
-//{
-//	cout << "Update Room" << endl;
-//
-//	DoTimer(100, &Room::UpdateTick);
-//}
 
 RoomPtr Room::GetRoomPtr()
 {

@@ -66,6 +66,9 @@
     <ClCompile Include="DBJobQueue.cpp">
       <Filter>Contents</Filter>
     </ClCompile>
+    <ClCompile Include="GameData.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -106,6 +109,9 @@
     </ClInclude>
     <ClInclude Include="DBJobQueue.h">
       <Filter>Contents</Filter>
+    </ClInclude>
+    <ClInclude Include="GameData.h">
+      <Filter>Main</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

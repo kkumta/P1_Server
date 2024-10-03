@@ -37,27 +37,13 @@ void DoDBJob()
 
 int main()
 {
-	ServerPacketHandler::Init();
+	// Load GameData(Json File)
+	GGameData->LoadData("../Common/GameData.json");
 
-	ServerServicePtr service = make_shared<ServerService>(
-		SockAddress(L"127.0.0.1", 7777),
-		make_shared<Iocp>(),
-		[=]() { return make_shared<GameSession>(); }, // TODO : SessionManager 등
-		100);
-
-	ASSERT_CRASH(service->Start());
-
-	// 게임 로직 스레드
-	for (int32 i = 0; i < 5; i++)
-	{
-		GThreadManager->Launch([&service]()
-		{
-			DoWorkerJob(service);
-		});
-	}
-
-	// DB 스레드
+	// DB Connect
 	ASSERT_CRASH(GDBConnectionPool->Connect(1, L"Driver={SQL Server Native Client 11.0};Server=(localdb)\\MSSQLLocalDB;Database=Phoenix;Trusted_Connection=Yes;"));
+
+	// Create users table
 	{
 		auto query = L"									\
 			DROP TABLE IF EXISTS [dbo].[users];				\
@@ -72,11 +58,34 @@ int main()
 		ASSERT_CRASH(dbConn->Execute(query));
 		GDBConnectionPool->Push(dbConn);
 	}
+
+	// Start DB Thread
 	for (int32 i = 0; i < 2; i++)
 	{
 		GThreadManager->Launch([=]()
 		{
 			DoDBJob();
+		});
+	}
+
+	// Init ServerPacketHandler
+	ServerPacketHandler::Init();
+
+	// Start ServerService
+	ServerServicePtr service = make_shared<ServerService>(
+		SockAddress(L"127.0.0.1", 7777),
+		make_shared<Iocp>(),
+		[=]() { return make_shared<GameSession>(); }, // TODO : SessionManager 등
+		100);
+
+	ASSERT_CRASH(service->Start());
+
+	// Start GameLogicThread
+	for (int32 i = 0; i < 5; i++)
+	{
+		GThreadManager->Launch([&service]()
+		{
+			DoWorkerJob(service);
 		});
 	}
 

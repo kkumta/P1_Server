@@ -17,6 +17,7 @@
 #include "Struct.pb.h"
 #include "ServerPacketHandler.h"
 #include "GameSession.h"
+#include "GameData.h"
 
 USING_SHARED_PTR(GameSession);
 USING_SHARED_PTR(Player);
