@@ -3,6 +3,7 @@
 #include "Player.h"
 #include "Monster.h"
 #include "GameSession.h"
+#include "GameData.h"
 
 atomic<int64> ObjectUtils::s_idGenerator = 1;
 

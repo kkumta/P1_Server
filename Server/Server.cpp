@@ -4,6 +4,7 @@
 #include "DBConnectionPool.h"
 #include "DBJobQueue.h"
 #include "Room.h"
+#include "GameData.h"
 
 enum
 {
@@ -22,7 +23,7 @@ void DoWorkerJob(ServerServicePtr& service)
 		// 예약된 일감 처리
 		ThreadManager::DistributeReservedJobs();
 
-		// 글로벌 큐
+		// 글로벌 큐에 있는 잡큐 일감 처리
 		ThreadManager::DoGlobalQueueWork(THREAD_TYPE::LOGIC);
 	}
 }
@@ -31,6 +32,9 @@ void DoDBJob()
 {
 	while (true)
 	{
+		LEndTickCount = ::GetTickCount64() + WORKER_TICK;
+
+		// 글로벌 큐에 있는 잡큐 일감 처리
 		ThreadManager::DoGlobalQueueWork(THREAD_TYPE::DB);
 	}
 }
@@ -51,21 +55,13 @@ int main()
 			(												\
 				[id] INT NOT NULL PRIMARY KEY IDENTITY,		\
 				[nickname] VARCHAR(32) NOT NULL,			\
-				[password] VARCHAR(32) NOT NULL				\
+				[password] VARCHAR(32) NOT NULL,			\
+				[exp] BIGINT DEFAULT 0 NOT NULL				\
 			);";
 
 		DBConnection* dbConn = GDBConnectionPool->Pop();
 		ASSERT_CRASH(dbConn->Execute(query));
 		GDBConnectionPool->Push(dbConn);
-	}
-
-	// Start DB Thread
-	for (int32 i = 0; i < 2; i++)
-	{
-		GThreadManager->Launch([=]()
-		{
-			DoDBJob();
-		});
 	}
 
 	// Init ServerPacketHandler
@@ -75,17 +71,26 @@ int main()
 	ServerServicePtr service = make_shared<ServerService>(
 		SockAddress(L"127.0.0.1", 7777),
 		make_shared<Iocp>(),
-		[=]() { return make_shared<GameSession>(); }, // TODO : SessionManager 등
+		[=]() { return make_shared<GameSession>(); },
 		100);
 
 	ASSERT_CRASH(service->Start());
 
 	// Start GameLogicThread
-	for (int32 i = 0; i < 5; i++)
+	for (int32 i = 0; i < 2; i++)
 	{
 		GThreadManager->Launch([&service]()
 		{
 			DoWorkerJob(service);
+		});
+	}
+
+	// Start DB Thread
+	for (int32 i = 0; i < 2; i++)
+	{
+		GThreadManager->Launch([]()
+		{
+			DoDBJob();
 		});
 	}
 

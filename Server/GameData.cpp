@@ -38,7 +38,7 @@ void GameData::LoadData(const std::string& file_path)
 	// MonsterData ÆÄ½Ì
 	for (const auto& item : data["monsters"])
 	{
-		MonsterData monster(item["monsterNumber"], item["nickname"], item["hp"], item["damage"], item["x"], item["y"], item["z"], item["yaw"]);
+		MonsterData monster(item["monsterNumber"], item["nickname"], item["hp"], item["damage"], item["rewardExp"], item["x"], item["y"], item["z"], item["yaw"]);
 		_monsters.push_back(monster);
 	}
 

@@ -3,8 +3,8 @@
 class MonsterData
 {
 public:
-	MonsterData(uint64 monsterNumber, string nickname, uint64 hp, uint64 damage, float x, float y, float z, float yaw)
-		: _monsterNumber(monsterNumber), _nickname(nickname), _hp(hp), _damage(damage), _x(x), _y(y), _z(z), _yaw(yaw)
+	MonsterData(uint64 monsterNumber, string nickname, uint64 hp, uint64 damage, uint64 rewardExp, float x, float y, float z, float yaw)
+		: _monsterNumber(monsterNumber), _nickname(nickname), _hp(hp), _damage(damage), _rewardExp(rewardExp), _x(x), _y(y), _z(z), _yaw(yaw)
 	{
 	}
 
@@ -12,6 +12,7 @@ public:
 	string GetNickname() const { return _nickname; }
 	uint64 GetHp() const { return _hp; }
 	uint64 GetDamage() const { return _damage; }
+	uint64 GetRewardExp() const { return _rewardExp; }
 	float GetX() const { return _x; }
 	float GetY() const { return _y; }
 	float GetZ() const { return _z; }
@@ -22,6 +23,7 @@ private:
 	string _nickname;
 	uint64 _hp;
 	uint64 _damage;
+	uint64 _rewardExp;
 	float _x;
 	float _y;
 	float _z;
@@ -70,4 +72,4 @@ private:
 	PlayerData _player;
 };
 
-extern shared_ptr<GameData> GGameData;
+extern GameDataPtr GGameData;

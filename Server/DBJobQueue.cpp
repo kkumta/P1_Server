@@ -155,3 +155,47 @@ bool DBJobQueue::HandleLogin(PacketSessionPtr session, Protocol::C_LOGIN pkt)
 
 	return true;
 }
+
+void DBJobQueue::HandleIncreaseExp(const string nickname, const uint64 rewardExp)
+{
+	// DB에 저장된 닉네임이 존재하는지 확인하고, EXP를 조회 및 갱신
+	DBConnection* dbConn = GDBConnectionPool->Pop();
+	if (dbConn == nullptr)
+	{
+		CRASH("DB Connection No Exists");
+		return;
+	}
+
+	// 기존에 바인딩된 정보 날림
+	dbConn->Unbind();
+
+	// 넘길 인자 바인딩 (닉네임)
+	SQLLEN nicknameLen = nickname.length();
+	ASSERT_CRASH(dbConn->BindParam(1, SQL_C_CHAR, SQL_VARCHAR, nicknameLen, const_cast<char*>(nickname.c_str()), &nicknameLen));
+
+	// 결과값을 받을 버퍼 설정 (exp)
+	uint64 currentExp = 0;
+	SQLLEN currentExpLen = sizeof(currentExp);
+	ASSERT_CRASH(dbConn->BindCol(1, SQL_C_UBIGINT, sizeof(currentExp), &currentExp, &currentExpLen));
+
+	// SQL 실행 (닉네임으로 exp 조회)
+	ASSERT_CRASH(dbConn->Execute(L"SELECT exp FROM [dbo].[users] WHERE nickname = (?)"));
+
+	// 결과 확인
+	dbConn->Fetch();
+
+	// 조회된 값에 rewardExp 더함
+	uint64 newExp = currentExp + rewardExp;
+
+	// Unbind 및 새로운 값을 업데이트
+	dbConn->Unbind();
+	ASSERT_CRASH(dbConn->BindParam(1, SQL_C_UBIGINT, SQL_BIGINT, sizeof(newExp), &newExp, &currentExpLen));
+	ASSERT_CRASH(dbConn->BindParam(2, SQL_C_CHAR, SQL_VARCHAR, nicknameLen, const_cast<char*>(nickname.c_str()), &nicknameLen));
+
+	// SQL 실행 (exp 업데이트)
+	ASSERT_CRASH(dbConn->Execute(L"UPDATE [dbo].[users] SET exp = (?) WHERE nickname = (?)"));
+	std::cout << "nickname " << nickname << "의 exp가 " << rewardExp << " 증가하여 " << newExp << "가 됨\n";
+
+	// DB 연결을 다시 풀에 반환
+	GDBConnectionPool->Push(dbConn);
+}

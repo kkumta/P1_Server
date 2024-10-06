@@ -4,6 +4,8 @@
 #include "Monster.h"
 #include "GameSession.h"
 #include "ObjectUtils.h"
+#include "DBJobQueue.h"
+#include "GameData.h"
 
 RoomPtr GRoom = make_shared<Room>();
 
@@ -163,7 +165,15 @@ void Room::HandleAttack(Protocol::C_ATTACK pkt)
 
 	// 피격당한 Creature의 HP가 0 이하가 되어 소멸하는 경우
 	if (attackedCreature->creatureInfo->cur_hp() <= attackingCreature->creatureInfo->damage())
+	{
+		// 소멸하는 Creature가 몬스터일 경우, Player의 EXP를 증가시킨다
+		if (auto victimMonster = dynamic_pointer_cast<Monster>(attackedCreature))
+		{
+			const uint64 rewardExp = GGameData->GetMonster(victimMonster->monsterInfo->monster_number()).GetRewardExp();
+			GDBJobQueue->DoAsync(&DBJobQueue::HandleIncreaseExp, attackingCreature->objectInfo->nickname(), rewardExp);
+		}
 		LeaveRoom(attackedCreature);
+	}
 	else
 	{
 		uint64 newHp = attackedCreature->creatureInfo->cur_hp() - attackingCreature->creatureInfo->damage();

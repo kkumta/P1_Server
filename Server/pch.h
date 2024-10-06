@@ -17,7 +17,6 @@
 #include "Struct.pb.h"
 #include "ServerPacketHandler.h"
 #include "GameSession.h"
-#include "GameData.h"
 
 USING_SHARED_PTR(GameSession);
 USING_SHARED_PTR(Player);
@@ -26,6 +25,7 @@ USING_SHARED_PTR(Creature);
 USING_SHARED_PTR(Object);
 USING_SHARED_PTR(Room);
 USING_SHARED_PTR(DBJobQueue);
+USING_SHARED_PTR(GameData);
 
 #define SEND_PACKET(pkt)													\
 	SendBufferPtr sendBuffer = ServerPacketHandler::MakeSendBuffer(pkt);	\
