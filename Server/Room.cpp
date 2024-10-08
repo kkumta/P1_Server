@@ -154,37 +154,37 @@ void Room::HandleMove(Protocol::C_MOVE pkt)
 
 void Room::HandleAttack(Protocol::C_ATTACK pkt)
 {
-	const uint64 attackingId = pkt.attacking_object_id();
-	const uint64 attackedId = pkt.attacked_object_id();
-	if (_objects.find(attackingId) == _objects.end() || _objects.find(attackedId) == _objects.end())
+	const uint64 attackerId = pkt.attacking_object_id();
+	const uint64 victimId = pkt.attacked_object_id();
+	if (_objects.find(attackerId) == _objects.end() || _objects.find(victimId) == _objects.end())
 		return;
 
 	// 공격 및 피격
-	CreaturePtr attackingCreature = dynamic_pointer_cast<Creature>(_objects[attackingId]);
-	CreaturePtr attackedCreature = dynamic_pointer_cast<Creature>(_objects[attackedId]);
+	CreaturePtr attackerCreature = dynamic_pointer_cast<Creature>(_objects[attackerId]);
+	CreaturePtr victimCreature = dynamic_pointer_cast<Creature>(_objects[victimId]);
 
 	// 피격당한 Creature의 HP가 0 이하가 되어 소멸하는 경우
-	if (attackedCreature->creatureInfo->cur_hp() <= attackingCreature->creatureInfo->damage())
+	if (victimCreature->creatureInfo->cur_hp() <= attackerCreature->creatureInfo->damage())
 	{
 		// 소멸하는 Creature가 몬스터일 경우, Player의 EXP를 증가시킨다
-		if (auto victimMonster = dynamic_pointer_cast<Monster>(attackedCreature))
+		if (auto victimMonster = dynamic_pointer_cast<Monster>(victimCreature))
 		{
 			const uint64 rewardExp = GGameData->GetMonster(victimMonster->monsterInfo->monster_number()).GetRewardExp();
-			GDBJobQueue->DoAsync(&DBJobQueue::HandleIncreaseExp, attackingCreature->objectInfo->nickname(), rewardExp);
+			GDBJobQueue->DoAsync(&DBJobQueue::HandleIncreaseExp, attackerCreature->objectInfo->nickname(), rewardExp);
 		}
-		LeaveRoom(attackedCreature);
+		LeaveRoom(victimCreature);
 	}
 	else
 	{
-		uint64 newHp = attackedCreature->creatureInfo->cur_hp() - attackingCreature->creatureInfo->damage();
-		attackedCreature->creatureInfo->set_cur_hp(newHp);
+		uint64 newHp = victimCreature->creatureInfo->cur_hp() - attackerCreature->creatureInfo->damage();
+		victimCreature->creatureInfo->set_cur_hp(newHp);
 
 		// 모든 클라이언트에게 공격 및 피격 사실을 알린다
 		{
 			Protocol::S_ATTACK attackPkt;
 			{
 				Protocol::CreatureInfo* info = attackPkt.mutable_info();
-				info->CopyFrom(*(attackedCreature->creatureInfo));
+				info->CopyFrom(*(victimCreature->creatureInfo));
 			}
 			SendBufferPtr sendBuffer = ServerPacketHandler::MakeSendBuffer(attackPkt);
 			Broadcast(sendBuffer);
