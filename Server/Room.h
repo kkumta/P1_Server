@@ -35,10 +35,13 @@ private:
 	enum
 	{
 		TOTAL_MONSTER_COUNT = 4,
+		MONSTER_RESPAWN_DELAY = 10000,
+		MONSTER_SPAWN_DELAY = 100,
 	};
 
-	unordered_map<uint64, ObjectPtr> _objects;
-	vector<pair<bool, uint64>> _monsters;
+	unordered_map<uint64, ObjectPtr> _objects; // uint64: object_id
+	unordered_map<string, uint64> _players; // string: nickname, uint64: object_id
+	vector<pair<bool, uint64>> _monsters; // uint64: monster_number
 };
 
 extern RoomPtr GRoom;

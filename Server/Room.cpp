@@ -105,7 +105,7 @@ bool Room::LeaveRoom(ObjectPtr object)
 	if (auto monster = dynamic_pointer_cast<Monster>(object))
 	{
 		_monsters[monster->monsterInfo->monster_number()].first = false;
-		DoTimer(10000, &Room::UpdateMonster);
+		DoTimer(MONSTER_RESPAWN_DELAY, &Room::UpdateMonster);
 	}
 
 	return success;
@@ -203,7 +203,7 @@ void Room::UpdateMonster()
 			createCount++;
 			_monsters[i].first = true;
 			MonsterPtr monster = ObjectUtils::CreateMonster(_monsters[i].second);
-			DoTimer(createCount * 100, &Room::HandleEnterMonster, monster);
+			DoTimer(createCount * MONSTER_SPAWN_DELAY, &Room::HandleEnterMonster, monster);
 		}
 	}
 }
@@ -215,12 +215,21 @@ RoomPtr Room::GetRoomPtr()
 
 bool Room::AddObject(ObjectPtr object)
 {
-	// 있다면 문제가 있다.
+	// 이미 해당 object_id로 추가된 객체가 있다면, 실패 처리
 	if (_objects.find(object->objectInfo->object_id()) != _objects.end())
 		return false;
 
-	_objects.insert(make_pair(object->objectInfo->object_id(), object));
+	// 이미 해당 nickname으로 접속한 플레이어가 있으면, 실패 처리
+	if (PlayerPtr player = dynamic_pointer_cast<Player>(object))
+	{
+		if (_players.find(object->objectInfo->nickname()) != _players.end())
+			return false;
 
+		// 없다면, 추가한다
+		_players.insert(make_pair(object->objectInfo->nickname(), object->objectInfo->object_id()));
+	}
+
+	_objects.insert(make_pair(object->objectInfo->object_id(), object));
 	object->room.store(GetRoomPtr());
 
 	return true;
@@ -233,9 +242,14 @@ bool Room::RemoveObject(uint64 objectId)
 		return false;
 
 	ObjectPtr object = _objects[objectId];
+
+	// 삭제될 객체가 플레이어일 경우
 	PlayerPtr player = dynamic_pointer_cast<Player>(object);
 	if (player)
+	{
 		player->room.store(weak_ptr<Room>());
+		_players.erase(player->objectInfo->nickname());
+	}
 
 	_objects.erase(objectId);
 
