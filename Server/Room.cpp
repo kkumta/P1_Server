@@ -6,6 +6,7 @@
 #include "ObjectUtils.h"
 #include "DBJobQueue.h"
 #include "GameData.h"
+#include "Logger.h"
 
 RoomPtr GRoom = make_shared<Room>();
 
@@ -134,11 +135,15 @@ void Room::HandleMove(Protocol::C_MOVE pkt)
 {
 	const uint64 objectId = pkt.info().object_id();
 	if (_objects.find(objectId) == _objects.end())
+	{
+		GLogger.logMove("", 0, "", pkt.info().x(), pkt.info().y(), pkt.info().z(), pkt.info().yaw(), false, "object_id not exist");
 		return;
+	}
 
 	// 적용
 	PlayerPtr player = dynamic_pointer_cast<Player>(_objects[objectId]);
 	player->posInfo->CopyFrom(pkt.info());
+	GLogger.logMove(CreatureType_Name(player->objectInfo->creature_type()), player->objectInfo->object_id(), player->objectInfo->nickname(), player->posInfo->x(), player->posInfo->y(), player->posInfo->z(), player->posInfo->yaw(), true);
 
 	// 모든 클라이언트에게 이동 사실을 알린다
 	{
@@ -157,15 +162,22 @@ void Room::HandleAttack(Protocol::C_ATTACK pkt)
 	const uint64 attackerId = pkt.attacking_object_id();
 	const uint64 victimId = pkt.attacked_object_id();
 	if (_objects.find(attackerId) == _objects.end() || _objects.find(victimId) == _objects.end())
+	{
+		GLogger.logAttack("", attackerId, "", "", victimId, "", 0, 0, 0, 0, 0, false, "attackerId/victimId not exist");
 		return;
+	}
 
 	// 공격 및 피격
 	CreaturePtr attackerCreature = dynamic_pointer_cast<Creature>(_objects[attackerId]);
 	CreaturePtr victimCreature = dynamic_pointer_cast<Creature>(_objects[victimId]);
 
+	GLogger.logAttack(CreatureType_Name(attackerCreature->objectInfo->creature_type()), attackerId, attackerCreature->objectInfo->nickname(), CreatureType_Name(victimCreature->objectInfo->creature_type()), victimId, victimCreature->objectInfo->nickname(), attackerCreature->creatureInfo->damage(), attackerCreature->posInfo->x(), attackerCreature->posInfo->y(), attackerCreature->posInfo->z(), attackerCreature->posInfo->yaw(), true);
+
 	// 피격당한 Creature의 HP가 0 이하가 되어 소멸하는 경우
 	if (victimCreature->creatureInfo->cur_hp() <= attackerCreature->creatureInfo->damage())
 	{
+		GLogger.logHit(CreatureType_Name(attackerCreature->objectInfo->creature_type()), attackerId, attackerCreature->objectInfo->nickname(), CreatureType_Name(victimCreature->objectInfo->creature_type()), victimId, victimCreature->objectInfo->nickname(), 0, attackerCreature->creatureInfo->damage(), attackerCreature->posInfo->x(), attackerCreature->posInfo->y(), attackerCreature->posInfo->z(), attackerCreature->posInfo->yaw(), true);
+
 		// 소멸하는 Creature가 몬스터일 경우, Player의 EXP를 증가시킨다
 		if (auto victimMonster = dynamic_pointer_cast<Monster>(victimCreature))
 		{
@@ -178,6 +190,9 @@ void Room::HandleAttack(Protocol::C_ATTACK pkt)
 	{
 		uint64 newHp = victimCreature->creatureInfo->cur_hp() - attackerCreature->creatureInfo->damage();
 		victimCreature->creatureInfo->set_cur_hp(newHp);
+
+		GLogger.logHit(CreatureType_Name(attackerCreature->objectInfo->creature_type()), attackerId, attackerCreature->objectInfo->nickname(), CreatureType_Name(victimCreature->objectInfo->creature_type()), victimId, victimCreature->objectInfo->nickname(), victimCreature->creatureInfo->cur_hp(), attackerCreature->creatureInfo->damage(), attackerCreature->posInfo->x(), attackerCreature->posInfo->y(), attackerCreature->posInfo->z(), attackerCreature->posInfo->yaw(), true);
+		GLogger.logDeath(CreatureType_Name(victimCreature->objectInfo->creature_type()), victimId, victimCreature->objectInfo->nickname(), true);
 
 		// 모든 클라이언트에게 공격 및 피격 사실을 알린다
 		{
@@ -217,13 +232,18 @@ bool Room::AddObject(ObjectPtr object)
 {
 	// 이미 해당 object_id로 추가된 객체가 있다면, 실패 처리
 	if (_objects.find(object->objectInfo->object_id()) != _objects.end())
+	{
+		GLogger.logSpawn(CreatureType_Name(object->objectInfo->creature_type()), object->objectInfo->object_id(), object->objectInfo->nickname(), object->posInfo->x(), object->posInfo->y(), object->posInfo->z(), object->posInfo->yaw(), false, "object_id already exist");
 		return false;
-
+	}
 	// 이미 해당 nickname으로 접속한 플레이어가 있으면, 실패 처리
 	if (PlayerPtr player = dynamic_pointer_cast<Player>(object))
 	{
 		if (_players.find(object->objectInfo->nickname()) != _players.end())
+		{
+			GLogger.logSpawn(CreatureType_Name(object->objectInfo->creature_type()), object->objectInfo->object_id(), object->objectInfo->nickname(), object->posInfo->x(), object->posInfo->y(), object->posInfo->z(), object->posInfo->yaw(), false, "nickname already exist");
 			return false;
+		}
 
 		// 없다면, 추가한다
 		_players.insert(make_pair(object->objectInfo->nickname(), object->objectInfo->object_id()));
@@ -232,6 +252,7 @@ bool Room::AddObject(ObjectPtr object)
 	_objects.insert(make_pair(object->objectInfo->object_id(), object));
 	object->room.store(GetRoomPtr());
 
+	GLogger.logSpawn(CreatureType_Name(object->objectInfo->creature_type()), object->objectInfo->object_id(), object->objectInfo->nickname(), object->posInfo->x(), object->posInfo->y(), object->posInfo->z(), object->posInfo->yaw(), true);
 	return true;
 }
 

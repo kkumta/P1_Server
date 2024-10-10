@@ -3,6 +3,7 @@
 #include "DBConnectionPool.h"
 #include "DBConnection.h"
 #include "GameSession.h"
+#include "Logger.h"
 
 DBJobQueuePtr GDBJobQueue = make_shared<DBJobQueue>();
 
@@ -26,6 +27,7 @@ bool DBJobQueue::HandleJoin(PacketSessionPtr session, Protocol::C_JOIN pkt)
 	{
 		joinPkt.set_success(false);
 		SEND_PACKET(joinPkt);
+		GLogger.logJoin(nickname, false, "ID/password is empty");
 		return false;
 	}
 
@@ -34,6 +36,7 @@ bool DBJobQueue::HandleJoin(PacketSessionPtr session, Protocol::C_JOIN pkt)
 		DBConnection* dbConn = GDBConnectionPool->Pop();
 		if (dbConn == nullptr)
 		{
+			GLogger.logJoin(nickname, false, "DB Connection no exists");
 			CRASH("DB Connection No Exists")
 				return false;
 		}
@@ -61,6 +64,7 @@ bool DBJobQueue::HandleJoin(PacketSessionPtr session, Protocol::C_JOIN pkt)
 		{
 			joinPkt.set_success(false);
 			SEND_PACKET(joinPkt);
+			GLogger.logJoin(nickname, false, "Nickname already exists");
 			return false;
 		}
 	}
@@ -70,6 +74,7 @@ bool DBJobQueue::HandleJoin(PacketSessionPtr session, Protocol::C_JOIN pkt)
 		DBConnection* dbConn = GDBConnectionPool->Pop();
 		if (dbConn == nullptr)
 		{
+			GLogger.logJoin(nickname, false, "DB Connection no exists");
 			CRASH("DB Connection No Exists")
 				return false;
 		}
@@ -91,6 +96,7 @@ bool DBJobQueue::HandleJoin(PacketSessionPtr session, Protocol::C_JOIN pkt)
 	// 클라이언트에 패킷 보내기
 	joinPkt.set_success(true);
 	SEND_PACKET(joinPkt);
+	GLogger.logJoin(nickname, true);
 
 	return true;
 }
@@ -107,6 +113,7 @@ bool DBJobQueue::HandleLogin(PacketSessionPtr session, Protocol::C_LOGIN pkt)
 	{
 		loginPkt.set_success(false);
 		SEND_PACKET(loginPkt);
+		GLogger.logLogin(nickname, false, "Nickname/password is empty");
 		return false;
 	}
 
@@ -115,6 +122,7 @@ bool DBJobQueue::HandleLogin(PacketSessionPtr session, Protocol::C_LOGIN pkt)
 		DBConnection* dbConn = GDBConnectionPool->Pop();
 		if (dbConn == nullptr)
 		{
+			GLogger.logLogin(nickname, false, "DB Connection no exists");
 			CRASH("DB Connection No Exists")
 				return false;
 		}
@@ -144,6 +152,8 @@ bool DBJobQueue::HandleLogin(PacketSessionPtr session, Protocol::C_LOGIN pkt)
 		{
 			loginPkt.set_success(false);
 			SEND_PACKET(loginPkt);
+
+			GLogger.logLogin(nickname, false, "Password is not matched");
 			return false;
 		}
 	}
@@ -153,6 +163,7 @@ bool DBJobQueue::HandleLogin(PacketSessionPtr session, Protocol::C_LOGIN pkt)
 	loginPkt.set_nickname(nickname);
 	SEND_PACKET(loginPkt);
 
+	GLogger.logLogin(nickname, true);
 	return true;
 }
 
@@ -162,6 +173,7 @@ void DBJobQueue::HandleIncreaseExp(const string nickname, const uint64 rewardExp
 	DBConnection* dbConn = GDBConnectionPool->Pop();
 	if (dbConn == nullptr)
 	{
+		GLogger.logIncreaseExp("Player", "nickname", rewardExp, false, "DB Connection no exists");
 		CRASH("DB Connection No Exists");
 		return;
 	}
@@ -194,8 +206,9 @@ void DBJobQueue::HandleIncreaseExp(const string nickname, const uint64 rewardExp
 
 	// SQL 실행 (exp 업데이트)
 	ASSERT_CRASH(dbConn->Execute(L"UPDATE [dbo].[users] SET exp = (?) WHERE nickname = (?)"));
-	std::cout << "nickname " << nickname << "의 exp가 " << rewardExp << " 증가하여 " << newExp << "가 됨\n";
 
 	// DB 연결을 다시 풀에 반환
 	GDBConnectionPool->Push(dbConn);
+
+	GLogger.logIncreaseExp("Player", nickname, rewardExp, true);
 }
