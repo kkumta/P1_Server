@@ -1,0 +1,89 @@
+syntax = "proto3";
+package Protocol;
+
+import "Enum.proto";
+import "Struct.proto";
+
+message C_JOIN
+{
+	JoinInfo joinInfo = 1;
+}
+
+message S_JOIN
+{
+	bool success = 1;
+}
+
+message C_LOGIN
+{
+	LoginInfo loginInfo = 1;
+}
+
+message S_LOGIN
+{
+	bool success = 1;
+	string nickname = 2;
+}
+
+message C_ENTER_GAME
+{
+	string nickname = 2;
+}
+
+message S_ENTER_GAME
+{
+	bool success = 1;
+	ObjectInfo player = 2;
+}
+
+message C_LEAVE_GAME
+{
+
+}
+
+message S_LEAVE_GAME
+{
+
+}
+
+message S_SPAWN
+{
+	repeated ObjectInfo objects = 1;
+}
+
+message S_DESPAWN
+{
+	repeated uint64 object_ids = 1;
+}
+
+message C_MOVE
+{
+	PosInfo info = 1;
+}
+
+message S_MOVE
+{
+	PosInfo info = 1;
+}
+
+message C_ATTACK
+{
+	uint64 attacking_object_id = 1;
+	uint64 attacked_object_id = 2;
+}
+
+message S_ATTACK
+{
+	CreatureInfo info = 1;
+}
+
+message C_CHAT
+{
+	string msg = 1;
+}
+
+message S_CHAT
+{
+	uint64 playerId = 1;
+	string msg = 2;
+}
